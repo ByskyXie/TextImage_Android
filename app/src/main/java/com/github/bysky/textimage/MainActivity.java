@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     final static int CHOOSE_PHOTO = 1001;
     private TextView textViewShowFile, textViewHint;
-    private WebView webViewChar;
     private Button buttonCommit;
     private ImageView image;
     private File imageFile;
@@ -40,12 +39,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        webViewChar = findViewById(R.id.webview_char);
         textViewShowFile = findViewById(R.id.text_view_show_file);
         textViewHint = findViewById(R.id.text_view_hint);
         buttonCommit = findViewById(R.id.button_commit);
         image = findViewById(R.id.image_preview);
-        webViewChar.getSettings().setSupportZoom(true);
         //
         textViewShowFile.setOnClickListener(this);
         buttonCommit.setOnClickListener(this);
@@ -166,8 +163,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             pbw.write(text,0,y);
             pbw.write("</p>\n</body>\n</HTML>");
             pbw.close();
-            //显示
-            webViewChar.loadUrl(pfile.getPath());
         }catch(IOException ioe){
             System.out.println(ioe);
         }

@@ -54,9 +54,9 @@
         android:text="@string/hint_no_item"
         android:textSize="20sp" />
 
-    <WebView
-        android:id="@+id/webview_char"
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_record"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"/>
 
 </LinearLayout>
