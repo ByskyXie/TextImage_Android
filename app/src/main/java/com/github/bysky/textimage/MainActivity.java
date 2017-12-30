@@ -2,9 +2,11 @@ package com.github.bysky.textimage;
 
 import android.Manifest;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -15,9 +17,10 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -26,11 +29,15 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     final static int CHOOSE_PHOTO = 1001;
+    private RecordDatabaseOpenHelper databaseOpenHelper;
+    private SQLiteDatabase database;
     private TextView textViewShowFile, textViewHint;
+    private RecyclerView recycler;
     private Button buttonCommit;
     private ImageView image;
     private File imageFile;
@@ -39,6 +46,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //读取数据库
+        databaseOpenHelper = new RecordDatabaseOpenHelper(this,"TextImage.db",null,1);
+        database = databaseOpenHelper.getWritableDatabase();
         textViewShowFile = findViewById(R.id.text_view_show_file);
         textViewHint = findViewById(R.id.text_view_hint);
         buttonCommit = findViewById(R.id.button_commit);
@@ -46,8 +56,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //
         textViewShowFile.setOnClickListener(this);
         buttonCommit.setOnClickListener(this);
+        //recyclerview
+        recycler = findViewById(R.id.recycler_record);
+        ArrayList<Record> list = getRecordList(database.query("RECORD"
+                ,new String[]{"FILE_PATH","FILE_NAME"},null,null,null,null,null));
+        RecordAdapter.OnItemClickListener listener = new RecordAdapter.OnItemClickListener() {
+            @Override
+            public void onClick(RecordAdapter.RecordHolder holder) {
+                //TODO:调用浏览器
+
+            }
+        };
+        RecordAdapter adapter = new RecordAdapter(this, list, listener);
+        GridLayoutManager glm = new GridLayoutManager(this, 4, GridLayoutManager.VERTICAL, false);
+        recycler.setLayoutManager(glm);
+        recycler.setAdapter(adapter);
         //申请权限
         requestPermission();
+    }
+
+    private ArrayList<Record> getRecordList(Cursor src){
+        ArrayList<Record> list = new ArrayList<Record>();
+        if(!src.moveToFirst())
+            return list;
+        do{
+            list.add(new Record( src.getString(src.getColumnIndex("FILE_PATH")),
+                    src.getString( src.getColumnIndex("FILE_NAME"))) );
+        }while(src.moveToNext());
+        return list;
     }
 
     @Override
@@ -84,25 +120,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     protected void output(int[] image,int w,int h){
-        BufferedWriter bw,pbw;
-        String path,pre;
+        BufferedWriter bw;
+        String path;
         path = imageFile.getPath().substring(0,imageFile.getPath().lastIndexOf('.'))+".txt";
-        pre = imageFile.getPath().substring(0,imageFile.getPath().lastIndexOf('.'))+".html";
         if(image == null)
             return;
         //开始处理图像
         File file = new File(path);
-        File pfile = new File(pre);
         try{
 //			if(file.exists()){
 //				System.out.print("该文件已存在,是否继续？");
 //			}
             file.createNewFile();
             bw = new BufferedWriter( new FileWriter(file));
-            pbw = new BufferedWriter( new FileWriter(pfile));
-            {
-                pbw.write("<HTML>\n<body>\n<p>");
-            }
             char[] text = new char[10000];
             int i,x,y,len,cf,temp;
             //虽然我也不知道为什么返回的数组长度有时!=w*h
@@ -133,36 +163,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 else if(temp<=216) text[y++]='^';
                 else if(temp<=229) text[y++]='\47';
                 else if(temp<=242) text[y++]='.';
-                else {
-                    text[y++]=' ';
-                    bw.write(text,0,y);
-                    pbw.write(text,0,y);
-                    y=0;
-                    //
-                    pbw.write("&nbsp;");
-                }
+                else text[y++]=' ';
                 i++;
                 if(i!=0 && i%w==0){
                     Log.e("=====:","WIDTH="+w+" I="+i+" I%W="+(i%w));
                     text[y++]='\n';
-                    pbw.write("<br>");
-                    //
                     bw.write(text,0,y);
-                    pbw.write(text,0,y);
                     y=0;
                 }
                 if(y >= 9990){
                     //满了
                     bw.write(text,0,y);
-                    pbw.write(text,0,y);
                     y=0;
                 }
             }
             bw.write(text,0,y);
             bw.close();
-            pbw.write(text,0,y);
-            pbw.write("</p>\n</body>\n</HTML>");
-            pbw.close();
+            writeRecord(path);
+            //添加记录
+            ((RecordAdapter)recycler.getAdapter()).addItem(path, path.substring(path.lastIndexOf('/'+1, path.lastIndexOf('.'))));
         }catch(IOException ioe){
             System.out.println(ioe);
         }
@@ -184,6 +203,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
         }
+    }
+
+    protected void writeRecord(String path){
+        ContentValues values = new ContentValues();
+        values.clear();
+        values.put("FILE_PATH", path);
+        values.put("FILE_NAME", path.substring(path.lastIndexOf('/')+1, path.lastIndexOf('.')));
+        database.insert("RECORD", null, values);
     }
 
     protected void handleImage(Intent data) {
