@@ -71,6 +71,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         GridLayoutManager glm = new GridLayoutManager(this, 4, GridLayoutManager.VERTICAL, false);
         recycler.setLayoutManager(glm);
         recycler.setAdapter(adapter);
+        //
+        if(!list.isEmpty())
+            textViewHint.setVisibility(View.GONE);
         //申请权限
         requestPermission();
     }
@@ -121,8 +124,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     protected void output(int[] image,int w,int h){
         BufferedWriter bw;
-        String path;
-        path = imageFile.getPath().substring(0,imageFile.getPath().lastIndexOf('.'))+".txt";
+        String path,imgPath;
+        imgPath = imageFile.getPath();
+        path = imgPath.substring(0,imgPath.lastIndexOf('.'))+".txt";
         if(image == null)
             return;
         //开始处理图像
@@ -179,9 +183,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             bw.write(text,0,y);
             bw.close();
-            writeRecord(path);
+            writeRecord(imgPath);
             //添加记录
-            ((RecordAdapter)recycler.getAdapter()).addItem(path, path.substring(path.lastIndexOf('/'+1, path.lastIndexOf('.'))));
+            ((RecordAdapter)recycler.getAdapter()).addItem(imgPath
+                    , imgPath.substring(imgPath.lastIndexOf('/'+1, imgPath.lastIndexOf('.'))));
         }catch(IOException ioe){
             System.out.println(ioe);
         }
