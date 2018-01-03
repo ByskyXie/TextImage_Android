@@ -64,7 +64,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onClick(RecordAdapter.RecordHolder holder) {
                 //TODO:调用浏览器
-
+                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse( holder.getTxtPath()));
+                startActivity(intent);
             }
         };
         RecordAdapter adapter = new RecordAdapter(this, list, listener);

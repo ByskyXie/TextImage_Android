@@ -33,17 +33,23 @@ public class RecordAdapter extends RecyclerView.Adapter<RecordAdapter.RecordHold
         private View root;
         private ImageView img;
         private TextView textViewTitle;
+        private String txtPath;
         private RecordHolder(View itemView) {
             super(itemView);
             root = itemView;
             img = itemView.findViewById(R.id.image_record_item);
             textViewTitle = itemView.findViewById(R.id.text_view_record_item);
         }
+
+        public String getTxtPath() {
+            return txtPath;
+        }
     }
 
     @Override
     public void onBindViewHolder(final RecordHolder holder, int position) {
         String path = recordList.get(holder.getAdapterPosition()).getFilePath();
+        holder.txtPath = "file:///"+path.substring(0,path.lastIndexOf('.'))+".txt";
         holder.textViewTitle.setText(recordList.get(holder.getAdapterPosition()).getFileName());
         holder.img.setImageBitmap(BitmapFactory.decodeFile(path));
         holder.root.setOnClickListener(new View.OnClickListener() {

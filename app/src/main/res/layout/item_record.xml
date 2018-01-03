@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_margin="@dimen/small_dimen"
+    android:layout_height="50dp"
     android:background="@drawable/shape_layout_record_item"
     android:clickable="true"
     android:focusable="true"
@@ -11,7 +10,9 @@
     <ImageView
         android:id="@+id/image_record_item"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_margin="@dimen/small_dimen"
+        android:layout_weight="1"
         android:clickable="false"
         android:scaleType="fitCenter" />
 
@@ -19,6 +20,12 @@
         android:id="@+id/text_view_record_item"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/small_dimen"
+        android:layout_marginLeft="@dimen/small_dimen"
+        android:layout_marginRight="@dimen/small_dimen"
+        android:layout_weight="0"
         android:clickable="false"
-        android:gravity="center" />
+        android:ellipsize="marquee"
+        android:gravity="center"
+        android:singleLine="true" />
 </LinearLayout>
